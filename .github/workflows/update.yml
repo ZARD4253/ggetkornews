@@ -1,51 +1,47 @@
-name: Auto Board Scraper
+name: Update Official Notices Feed
 
 on:
-  # 1시간마다 (매시 0분) 실행
   schedule:
-    - cron: '0 10 * * *'
-  # 필요하면 수동으로도 실행 가능
-  workflow_dispatch:
-
-# 🚨 핵심: GitHub에 파일을 추가/수정하는 권한 허용
-permissions:
-  contents: write
+    - cron: '0 */2 * * *'   # 2시간마다 실행
+  workflow_dispatch:        # 수동 실행 버튼 활성화
 
 jobs:
-  build:
+  crawl-and-deploy:
     runs-on: ubuntu-latest
     steps:
-      # 1. 저장소 불러오기
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-      # 2. 파이썬 설치
-      - name: Set up Python
-        uses: actions/setup-python@v4
+      - name: Checkout
+        uses: actions/checkout@v4
         with:
-          python-version: '3.9'
+          token: ${{ secrets.GITHUB_TOKEN }}
 
-      # 3. 크롤링에 필요한 라이브러리 설치 (selenium만)
-      - name: Install Selenium
-        run: pip install selenium
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
 
-      # 4. 🎯 파이썬 스크립트 실행 (만든 코드)
-      - name: Run Scraper
-        run: python main.py
-
-      # 5. 변경된 내용이 있다면 커밋 & 푸시 (중복 방지 포함)
-      - name: Commit and Push Changes
+      - name: Install Chrome (for Selenium)
         run: |
-          git config --local user.email "action@github.com"
-          git config --local user.name "GitHub Action"
-          
-          # 새로 생성된 output 폴더 모두 추적
+          wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
+          echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" | sudo tee /etc/apt/sources.list.d/google-chrome.list
+          sudo apt-get update
+          sudo apt-get install -y google-chrome-stable
+
+      - name: Install dependencies
+        run: |
+          pip install selenium beautifulsoup4 lxml webdriver-manager
+
+      - name: Run crawler
+        run: python crawler.py
+
+      - name: Commit and push if changed
+        run: |
+          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
           git add output/
-          
-          # 변경 사항 확인 후 커밋
-          if git diff --staged --quiet; then
-             echo "ℹ️ 변경 사항이 없어서 커밋하지 않습니다."
+          if git status --porcelain | grep -q "output/"; then
+            git commit -m "Auto-update: latest official notices $(date +'%Y-%m-%d %H:%M:%S')"
+            git push
+            echo "✅ 변경 사항 커밋 및 푸시 완료"
           else
-             git commit -m "⏰ Cron Update: Python-generated RSS & HTML"
-             git push
+            echo "ℹ️ 변경 사항 없음 — 커밋 생략"
           fi
