@@ -2,8 +2,8 @@ name: Update Official Notices Feed
 
 on:
   schedule:
-    - cron: '0 */2 * * *'   # 2시간마다 실행
-  workflow_dispatch:        # 수동 실행 버튼 활성화
+    - cron: '0 */2 * * *'
+  workflow_dispatch:
 
 jobs:
   crawl-and-deploy:
