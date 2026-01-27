@@ -1,39 +1,51 @@
-name: Update Official Notices Feed
+name: Auto Board Scraper
 
 on:
+  # 1시간마다 (매시 0분) 실행
   schedule:
-    - cron: '0 */2 * * *'   # 2시간마다 실행 (원하는 주기로 변경 가능)
-  workflow_dispatch:        # 수동 실행 버튼 활성화
+    - cron: '0 10 * * *'
+  # 필요하면 수동으로도 실행 가능
+  workflow_dispatch:
+
+# 🚨 핵심: GitHub에 파일을 추가/수정하는 권한 허용
+permissions:
+  contents: write
 
 jobs:
-  crawl-and-deploy:
+  build:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      # 1. 저장소 불러오기
+      - name: Checkout code
+        uses: actions/checkout@v3
 
-      - name: Setup Python
-        uses: actions/setup-python@v5
+      # 2. 파이썬 설치
+      - name: Set up Python
+        uses: actions/setup-python@v4
         with:
-          python-version: '3.11'
+          python-version: '3.9'
 
-      - name: Install Chrome (for Selenium)
-        run: |
-          wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | sudo apt-key add -
-          echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" | sudo tee /etc/apt/sources.list.d/google-chrome.list
-          sudo apt-get update
-          sudo apt-get install -y google-chrome-stable
+      # 3. 크롤링에 필요한 라이브러리 설치 (selenium만)
+      - name: Install Selenium
+        run: pip install selenium
 
-      - name: Install dependencies
-        run: |
-          pip install selenium beautifulsoup4 lxml webdriver-manager
+      # 4. 🎯 파이썬 스크립트 실행 (만든 코드)
+      - name: Run Scraper
+        run: python main.py
 
-      - name: Run crawler
-        run: python crawler.py
-
-      - name: Commit and push if changed
+      # 5. 변경된 내용이 있다면 커밋 & 푸시 (중복 방지 포함)
+      - name: Commit and Push Changes
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "GitHub Action"
+          
+          # 새로 생성된 output 폴더 모두 추적
           git add output/
-          git diff --quiet && git diff --staged --quiet || (git commit -m "Auto-update: latest official notices $(date +'%Y-%m-%d %H:%M:%S')" && git push)
+          
+          # 변경 사항 확인 후 커밋
+          if git diff --staged --quiet; then
+             echo "ℹ️ 변경 사항이 없어서 커밋하지 않습니다."
+          else
+             git commit -m "⏰ Cron Update: Python-generated RSS & HTML"
+             git push
+          fi
