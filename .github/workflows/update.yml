@@ -2,8 +2,8 @@ name: Update Official Notices Feed
 
 on:
   schedule:
-    - cron: '0 */2 * * *'
-  workflow_dispatch:
+    - cron: '0 */2 * * *'   # 2시간마다 실행 (원하는 주기로 변경 가능)
+  workflow_dispatch:        # 수동 실행 버튼 활성화
 
 jobs:
   crawl-and-deploy:
@@ -32,13 +32,8 @@ jobs:
         run: python crawler.py
 
       - name: Commit and push if changed
-  run: |
-    git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
-    git config --local user.name "github-actions[bot]"
-    git add output/
-    git status --porcelain > /dev/null
-    if [ $? -ne 0 ]; then
-      echo "No changes to commit."
-      exit 0
-    fi
-    git commit -m "Auto-update: latest official notices $(date +'%Y-%m-%d %H:%M:%S')" && git push || echo "Nothing to commit or push."
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action"
+          git add output/
+          git diff --quiet && git diff --staged --quiet || (git commit -m "Auto-update: latest official notices $(date +'%Y-%m-%d %H:%M:%S')" && git push)
