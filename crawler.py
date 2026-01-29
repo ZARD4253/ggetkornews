@@ -9,7 +9,7 @@ import os
 from xml.sax.saxutils import escape
 
 # --- 설정 ---
-TARGET_URL = "https://game.naver.com/lounge/SD_Gundam_G_Generation_ETERNAL/board/5"
+TARGET_URL = "https://game.naver.com/lounge/SD_Gundam_G_Generation_ETERNAL/board/22"
 OUTPUT_DIR = "output"
 
 options = Options()
