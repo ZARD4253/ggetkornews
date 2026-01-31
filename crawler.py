@@ -128,7 +128,7 @@ try:
             f.write('  </channel>\n')
             f.write('</rss>\n')
 
-        # === 건담 스타일 HTML 생성 ===
+        # === 건담 스타일 HTML 생성 (우클릭 방지 코드 추가) ===
         with open(f"{OUTPUT_DIR}/index.html", "w", encoding="utf-8") as f:
             f.write("""<!DOCTYPE html>
 <html lang="ko">
@@ -141,6 +141,10 @@ try:
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
         }
         
         body {
@@ -367,7 +371,7 @@ try:
         }
     </style>
 </head>
-<body>
+<body oncontextmenu="return false" onselectstart="return false" ondragstart="return false">
     <div class="container">
         <div class="header">
             <h1>🤖 SD건담 G 제네레이션 이터널</h1>
@@ -412,12 +416,56 @@ try:
                 }
             });
         });
+        
+        // ===== 보안 기능 =====
+        
+        // 1. 우클릭 메뉴(Context Menu) 방지
+        document.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+            return false;
+        }, false);
+        
+        // 2. 드래그 및 텍스트 선택 방지
+        document.addEventListener('selectstart', function(e) {
+            e.preventDefault();
+            return false;
+        }, false);
+        
+        document.addEventListener('dragstart', function(e) {
+            e.preventDefault();
+            return false;
+        }, false);
+        
+        // 3. 복사(Ctrl+C), 잘라내기(Ctrl+X), 전체선택(Ctrl+A) 막기
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && (e.keyCode === 67 || e.keyCode === 88 || e.keyCode === 65)) {
+                e.preventDefault();
+                return false;
+            }
+        }, false);
+        
+        // 4. 개발자 도구 (F12, Ctrl+Shift+I/J/C, Ctrl+U) 막기
+        document.onkeydown = function(e) {
+            // F12
+            if (e.keyCode === 123) {
+                return false;
+            }
+            // Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+Shift+C
+            if (e.ctrlKey && e.shiftKey && (e.keyCode === 73 || e.keyCode === 74 || e.keyCode === 67)) {
+                return false;
+            }
+            // Ctrl+U (페이지 소스 보기)
+            if (e.ctrlKey && e.keyCode === 85) {
+                return false;
+            }
+        };
     </script>
 </body>
 </html>""")
 
         print(f"\n🎉 성공! {len(items)}개의 공지글 저장 완료 → {OUTPUT_DIR}/index.html")
         print("🔗 GitHub Pages에 배포하면 자동 갱신 사이트 완성!")
+        print("🔒 우클릭 방지 및 복사 방지 보안 기능 적용됨")
 
     else:
         print("\n🚫 게시글을 하나도 찾지 못했습니다. 클래스명을 다시 확인해 주세요.")
