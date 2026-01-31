@@ -9,6 +9,10 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
         }
         
         body {
@@ -235,12 +239,12 @@
         }
     </style>
 </head>
-<body>
+<body oncontextmenu="return false" onselectstart="return false" ondragstart="return false">
     <div class="container">
         <div class="header">
             <h1>🤖 SD건담 G 제네레이션 이터널</h1>
             <p class="subtitle">📡 공식 공지사항 게시판</p>
-            <p class="updated">Last Update: 2026-01-31 20:14:11</p>
+            <p class="updated">Last Update: 2026-01-31 20:38:55</p>
         </div>
         
         <div class="cards-grid">
@@ -253,7 +257,7 @@
                     <div class="card-title">강적 습격 'G팔콘 GX' 개최 중!</div>
                     <div class="card-meta">
                         <span>👤 GM GGEternal2</span>
-                        <span>📅 16시간 전</span>
+                        <span>📅 17시간 전</span>
                     </div>
                     <a class="card-link" href="https://game.naver.com/lounge/SD_Gundam_G_Generation_ETERNAL/board/detail/7246543" target="_blank">
                         📄 원문 보기 →
@@ -658,6 +662,49 @@
                 }
             });
         });
+        
+        // ===== 보안 기능 =====
+        
+        // 1. 우클릭 메뉴(Context Menu) 방지
+        document.addEventListener('contextmenu', function(e) {
+            e.preventDefault();
+            return false;
+        }, false);
+        
+        // 2. 드래그 및 텍스트 선택 방지
+        document.addEventListener('selectstart', function(e) {
+            e.preventDefault();
+            return false;
+        }, false);
+        
+        document.addEventListener('dragstart', function(e) {
+            e.preventDefault();
+            return false;
+        }, false);
+        
+        // 3. 복사(Ctrl+C), 잘라내기(Ctrl+X), 전체선택(Ctrl+A) 막기
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && (e.keyCode === 67 || e.keyCode === 88 || e.keyCode === 65)) {
+                e.preventDefault();
+                return false;
+            }
+        }, false);
+        
+        // 4. 개발자 도구 (F12, Ctrl+Shift+I/J/C, Ctrl+U) 막기
+        document.onkeydown = function(e) {
+            // F12
+            if (e.keyCode === 123) {
+                return false;
+            }
+            // Ctrl+Shift+I, Ctrl+Shift+J, Ctrl+Shift+C
+            if (e.ctrlKey && e.shiftKey && (e.keyCode === 73 || e.keyCode === 74 || e.keyCode === 67)) {
+                return false;
+            }
+            // Ctrl+U (페이지 소스 보기)
+            if (e.ctrlKey && e.keyCode === 85) {
+                return false;
+            }
+        };
     </script>
 </body>
 </html>
